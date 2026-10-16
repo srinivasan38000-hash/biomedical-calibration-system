@@ -11,6 +11,14 @@ async function seed() {
     await mongoose.connect(process.env.MONGO_URI);
     console.log('MongoDB connected for seeding');
 
+    // Skip if data already exists (idempotent) unless --force flag is passed
+    const forceReseed = process.argv.includes('--force');
+    const existingCount = await Equipment.countDocuments();
+    if (existingCount > 0 && !forceReseed) {
+      console.log(`Seed skipped: ${existingCount} equipment records already exist. Use --force to reseed.`);
+      process.exit(0);
+    }
+
     // Clean old demo data (leave users intact)
     await Equipment.deleteMany({});
     await Calibration.deleteMany({});

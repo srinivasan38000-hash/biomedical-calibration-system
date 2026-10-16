@@ -25,7 +25,7 @@ router.post('/register', async (req, res) => {
     }
 
     const isFirst = (await User.countDocuments()) === 0;
-    const finalRole = isFirst ? 'ADMIN' : ['TECHNICIAN', 'STAFF'].includes(role) ? role : 'STAFF';
+    const finalRole = isFirst ? 'ADMIN' : ['ADMIN', 'TECHNICIAN', 'STAFF'].includes(role) ? role : 'STAFF';
 
     const user = await User.create({
       name,

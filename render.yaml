@@ -24,6 +24,7 @@ services:
     rootDir: backend
     buildCommand: npm install
     startCommand: npm start
+    preDeployCommand: node seedData.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION

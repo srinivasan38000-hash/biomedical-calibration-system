@@ -3,7 +3,7 @@ import { api } from '../api.js';
 
 export default function Login({ onLogin }) {
   const [isRegister, setIsRegister] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'STAFF' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'ADMIN' });
   const [error, setError] = useState('');
 
   const change = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -35,8 +35,9 @@ export default function Login({ onLogin }) {
         <input name="password" type="password" placeholder="Password (min 6 characters)" value={form.password} onChange={change} required />
         {isRegister && (
           <select name="role" value={form.role} onChange={change}>
+            <option value="ADMIN">Admin (full access)</option>
+            <option value="TECHNICIAN">Technician (add &amp; edit records)</option>
             <option value="STAFF">Staff (view only)</option>
-            <option value="TECHNICIAN">Technician (add & edit records)</option>
           </select>
         )}
 
