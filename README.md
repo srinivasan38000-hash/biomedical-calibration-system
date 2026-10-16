@@ -102,33 +102,55 @@ Open http://localhost:5173
 
 ## 3. Deploy online (free tiers)
 
-### Database - MongoDB Atlas
+### Deploy Both with Render Blueprint (Recommended - 1-Click Setup)
+The repository includes a `render.yaml` Blueprint file configured for Render's Free Tier:
+- **Frontend**: Deployed as a fast **Static Site** on Render's CDN (100% free, 0 instance hours consumed, never sleeps).
+- **Backend**: Deployed as a Node.js **Web Service** on Render's Free tier (included 750 free instance hours/month).
+- **Connection**: Vite's `VITE_API_URL` is automatically wired to the backend URL via Render's service discovery.
+
+#### Deployment Steps:
+1. Push this repository to GitHub.
+2. In the [Render Dashboard](https://dashboard.render.com), click **New +** -> **Blueprint**.
+3. Connect your GitHub repository.
+4. Render will detect `render.yaml` and show the two services (`biomedical-calibration-backend` and `biomedical-calibration-frontend`).
+5. In the prompt for `MONGO_URI`, paste your MongoDB Atlas connection string (e.g. `mongodb+srv://USER:PASSWORD@cluster0.xxxx.mongodb.net/biomedical_calibration`).
+6. Click **Apply**. Render will automatically:
+   - Generate a secure `JWT_SECRET`
+   - Build and start the backend service
+   - Inject the backend URL into `VITE_API_URL`
+   - Build and deploy the React frontend static site
+   - Set up SPA client-side routing rewrites
+
+---
+
+### Manual Deployment (Separate Services)
+
+#### Database - MongoDB Atlas
 1. Create a free cluster at https://www.mongodb.com/atlas
 2. Database Access -> add a user + password.
 3. Network Access -> allow 0.0.0.0/0 (for a demo).
 4. Connect -> Drivers -> copy the connection string, e.g.
    `mongodb+srv://USER:PASSWORD@cluster0.xxxx.mongodb.net/biomedical_calibration`
 
-### Backend - Render
+#### Backend - Render Web Service
 1. Push the project to GitHub.
 2. Render -> New -> Web Service -> pick your repo.
 3. Root Directory: `backend`  |  Build Command: `npm install`  |  Start Command: `npm start`
 4. Environment variables:
    - `MONGO_URI` = your Atlas string
    - `JWT_SECRET` = a long random text
-   - `CLIENT_URL` = your frontend URL (add after step below; no trailing slash)
+   - `CLIENT_URL` = your frontend URL (or `*`; no trailing slash)
 5. Deploy and copy the backend URL, e.g. https://biomedical-api.onrender.com
 
-Free Render disks are temporary, so uploaded certificates can disappear on restart.
+Note: Free Render disks are temporary, so uploaded certificates can disappear on restart.
 For permanent files use Render's paid persistent disk or a cloud store such as Cloudinary.
 
-### Frontend - Vercel (or Netlify)
-1. Vercel -> New Project -> pick the repo.
-2. Root Directory: `frontend`  (Framework: Vite; build `npm run build`; output `dist`)
-3. Environment variable: `VITE_API_URL` = your Render backend URL (no trailing slash)
-4. Deploy, then put the Vercel URL into `CLIENT_URL` on Render and redeploy the backend.
-
-For Vercel, add `frontend/vercel.json` (already included) so page refresh works with React Router.
+#### Frontend - Render Static Site / Vercel
+1. Render -> New -> Static Site (or Vercel -> New Project).
+2. Root Directory: `frontend`
+3. Build Command: `npm install && npm run build`  |  Publish Directory: `dist`
+4. Environment variable: `VITE_API_URL` = your Render backend URL (no trailing slash)
+5. Under Redirects/Rewrites: add rewrite `/*` -> `/index.html` (for SPAs)
 
 ## Troubleshooting
 - **MongoDB connection failed** - MongoDB service is not running, or `MONGO_URI` is wrong.

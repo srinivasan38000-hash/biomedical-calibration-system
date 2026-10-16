@@ -1,0 +1,70 @@
+# ==============================================================================
+# Render Blueprint Specification (render.yaml)
+# Project: Biomedical Device Calibration and Maintenance Management System
+# Stack: Express API (Backend Web Service) + Vite React (Frontend Static Site)
+# Tier: 100% Free Tier Compatible
+#
+# Free Tier Architecture:
+# - Frontend: Deployed as a "Static Site" on Render's global CDN (Free, 0 instance
+#   hours consumed, never sleeps, fast edge caching).
+# - Backend: Deployed as a Node.js "Web Service" on Render's Free instance plan
+#   (uses the included 750 free instance hours/month).
+# - Database: Hosted on MongoDB Atlas (Free M0 Cluster).
+# ==============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. Backend Web Service (Node.js + Express + MongoDB)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: biomedical-calibration-backend
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      # Required: MongoDB connection string from MongoDB Atlas
+      # Render will prompt you for this value when setting up the Blueprint
+      - key: MONGO_URI
+        sync: false
+      # Automatically generates a secure, random secret for signing JWT tokens
+      - key: JWT_SECRET
+        generateValue: true
+      # Allows CORS requests from the frontend (or set to specific frontend domain)
+      - key: CLIENT_URL
+        value: "*"
+
+  # ---------------------------------------------------------------------------
+  # 2. Frontend Static Site (React + Vite)
+  # ---------------------------------------------------------------------------
+  - type: web
+    name: biomedical-calibration-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install --include=dev && npm run build
+    staticPublishPath: ./dist
+    routes:
+      # SPA fallback routing: forwards all client-side routes to index.html
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: SAMEORIGIN
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    envVars:
+      # Dynamically injects the backend web service's public HTTPS URL
+      # so Vite builds with the correct API endpoint baked in
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: biomedical-calibration-backend
+          envVarKey: RENDER_EXTERNAL_URL
